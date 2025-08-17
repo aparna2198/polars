@@ -150,7 +150,7 @@ pub(super) fn process_projection(
             .project_simple_nodes(local_projection.into_iter().map(|e| e.node()))?
             .build()
     } else {
-        proj_pd.finish_node(local_projection, builder)
+        proj_pd.finish_node(local_projection, builder)?
     };
 
     Ok(lp)

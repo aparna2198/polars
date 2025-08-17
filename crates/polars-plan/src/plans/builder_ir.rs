@@ -58,13 +58,13 @@ impl<'a> IRBuilder<'a> {
         to_expr_ir(expr, &mut ctx)
     }
 
-    pub fn project(self, exprs: Vec<ExprIR>, options: ProjectionOptions) -> Self {
+    pub fn project(self, exprs: Vec<ExprIR>, options: ProjectionOptions) -> PolarsResult<Self> {
         // if len == 0, no projection has to be done. This is a select all operation.
         if exprs.is_empty() {
-            self
+            Ok(self)
         } else {
             let input_schema = self.schema();
-            let schema = expr_irs_to_schema(&exprs, &input_schema, self.expr_arena);
+            let schema = expr_irs_to_schema(&exprs, &input_schema, self.expr_arena)?;
 
             let lp = IR::Select {
                 expr: exprs,
@@ -73,7 +73,7 @@ impl<'a> IRBuilder<'a> {
                 options,
             };
             let node = self.lp_arena.add(lp);
-            IRBuilder::new(node, self.expr_arena, self.lp_arena)
+            Ok(IRBuilder::new(node, self.expr_arena, self.lp_arena))
         }
     }
 
@@ -206,11 +206,11 @@ impl<'a> IRBuilder<'a> {
         self.lp_arena.get(self.root).schema(self.lp_arena)
     }
 
-    pub fn with_columns(self, exprs: Vec<ExprIR>, options: ProjectionOptions) -> Self {
+    pub fn with_columns(self, exprs: Vec<ExprIR>, options: ProjectionOptions) -> PolarsResult<Self> {
         let schema = self.schema();
         let mut new_schema = (**schema).clone();
 
-        let hstack_schema = expr_irs_to_schema(&exprs, &schema, self.expr_arena);
+        let hstack_schema = expr_irs_to_schema(&exprs, &schema, self.expr_arena)?;
         new_schema.merge(hstack_schema);
 
         let lp = IR::HStack {
@@ -219,7 +219,7 @@ impl<'a> IRBuilder<'a> {
             schema: Arc::new(new_schema),
             options,
         };
-        self.add_alp(lp)
+        Ok(self.add_alp(lp))
     }
 
     pub fn with_columns_simple<I, J: Into<Node>>(self, exprs: I, options: ProjectionOptions) -> Self
@@ -274,9 +274,9 @@ impl<'a> IRBuilder<'a> {
         apply: Option<PlanCallback<DataFrame, DataFrame>>,
         maintain_order: bool,
         options: Arc<GroupbyOptions>,
-    ) -> Self {
+    ) -> PolarsResult<Self> {
         let current_schema = self.schema();
-        let mut schema = expr_irs_to_schema(&keys, &current_schema, self.expr_arena);
+        let mut schema = expr_irs_to_schema(&keys, &current_schema, self.expr_arena)?;
 
         #[cfg(feature = "dynamic_group_by")]
         {
@@ -295,7 +295,7 @@ impl<'a> IRBuilder<'a> {
             }
         }
 
-        let mut aggs_schema = expr_irs_to_schema(&aggs, &current_schema, self.expr_arena);
+        let mut aggs_schema = expr_irs_to_schema(&aggs, &current_schema, self.expr_arena)?;
 
         // Coerce aggregation column(s) into List unless not needed (auto-implode)
         debug_assert!(aggs_schema.len() == aggs.len());
@@ -316,7 +316,7 @@ impl<'a> IRBuilder<'a> {
             maintain_order,
             options,
         };
-        self.add_alp(lp)
+        Ok(self.add_alp(lp))
     }
 
     pub fn join(

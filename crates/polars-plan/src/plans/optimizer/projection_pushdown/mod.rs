@@ -248,31 +248,30 @@ impl ProjectionPushDown {
         let lp = lp.with_inputs(new_inputs);
 
         let builder = IRBuilder::from_lp(lp, expr_arena, lp_arena);
-        Ok(self.finish_node_simple_projection(&ctx.acc_projections, builder))
+        self.finish_node_simple_projection(&ctx.acc_projections, builder)
     }
 
     fn finish_node_simple_projection(
         &mut self,
         local_projections: &[ColumnNode],
         builder: IRBuilder,
-    ) -> IR {
+    ) -> PolarsResult<IR> {
         if !local_projections.is_empty() {
-            builder
-                .project_simple_nodes(local_projections.iter().map(|node| node.0))
-                .unwrap()
-                .build()
+            Ok(builder
+                .project_simple_nodes(local_projections.iter().map(|node| node.0))?
+                .build())
         } else {
-            builder.build()
+            Ok(builder.build())
         }
     }
 
-    fn finish_node(&mut self, local_projections: Vec<ExprIR>, builder: IRBuilder) -> IR {
+    fn finish_node(&mut self, local_projections: Vec<ExprIR>, builder: IRBuilder) -> PolarsResult<IR> {
         if !local_projections.is_empty() {
-            builder
-                .project(local_projections, Default::default())
-                .build()
+            Ok(builder
+                .project(local_projections, Default::default())?
+                .build())
         } else {
-            builder.build()
+            Ok(builder.build())
         }
     }
 

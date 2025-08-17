@@ -499,6 +499,6 @@ fn resolve_join_suffixes(
             .project_simple(projections.iter().map(|e| e.output_name().clone()))?
             .build()
     } else {
-        builder.project(projections, Default::default()).build()
+        builder.project(projections, Default::default())?.build()
     })
 }

@@ -43,7 +43,7 @@ pub(super) fn process_group_by(
         &keys,
         lp_arena.get(input).schema(lp_arena).as_ref(),
         expr_arena,
-    );
+    )?;
 
     let mut new_acc_predicates = PlHashMap::with_capacity(acc_predicates.len());
 

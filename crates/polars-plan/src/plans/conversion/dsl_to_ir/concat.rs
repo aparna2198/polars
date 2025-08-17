@@ -49,10 +49,9 @@ pub(super) fn convert_diagonal_concat(
         }
         *node = IRBuilder::new(*node, expr_arena, lp_arena)
             // Add the missing columns
-            .with_columns(columns_to_add, Default::default())
+            .with_columns(columns_to_add, Default::default())?
             // Now, reorder to match schema.
-            .project_simple(total_schema.iter_names().map(|v| v.as_str()))
-            .unwrap()
+            .project_simple(total_schema.iter_names().map(|v| v.as_str()))?
             .node();
     }
 
@@ -103,7 +102,7 @@ pub(super) fn convert_st_union(
                     &mut ExprToIRContext::new_with_opt_eager(expr_arena, &input_schema, opt_flags),
                 )?;
                 let lp = IRBuilder::new(*input, expr_arena, lp_arena)
-                    .with_columns(expr, Default::default())
+                    .with_columns(expr, Default::default())?
                     .build();
 
                 let node = lp_arena.add(lp);

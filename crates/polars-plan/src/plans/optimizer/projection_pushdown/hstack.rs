@@ -61,7 +61,7 @@ pub(super) fn process_hstack(
     proj_pd.pushdown_and_assign(input, ctx, lp_arena, expr_arena)?;
 
     let lp = IRBuilder::new(input, expr_arena, lp_arena)
-        .with_columns(exprs, options)
+        .with_columns(exprs, options)?
         .build();
     Ok(lp)
 }

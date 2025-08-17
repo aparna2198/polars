@@ -30,7 +30,7 @@ pub(super) fn process_group_by(
         let input = lp_arena.add(lp);
 
         let builder = IRBuilder::new(input, expr_arena, lp_arena);
-        Ok(proj_pd.finish_node_simple_projection(&ctx.acc_projections, builder))
+        proj_pd.finish_node_simple_projection(&ctx.acc_projections, builder)
     } else {
         let has_pushed_down = ctx.has_pushed_down();
 
@@ -86,6 +86,6 @@ pub(super) fn process_group_by(
             maintain_order,
             options,
         );
-        Ok(builder.build())
+        Ok(builder?.build())
     }
 }
